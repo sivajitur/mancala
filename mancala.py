@@ -1,20 +1,17 @@
-import ollama
 class Player:
     def __init__(self, num, pits, store):
         self.pits = pits
         self.store = store
         self.num = num
     def get_pits(self):
-        if self.num == 1:
-            return(self.pits)
-        else:
-            return (self.pits[::-1])
+        return self.pits
     def get_store(self):
         return(self.store)
     def set_pits(self, p):
         self.pits = p
     def set_store(self, s):
         self.store = s
+
 class Board:
     def __init__(self):
         self.player1 = Player(1, pits = [4] * 6, store = 0)
@@ -26,15 +23,20 @@ class Board:
             return self.player2
         else:
             ValueError("Either 1 or 2")
-    def print_board(self, flip = False):
-        if flip:
-            print('P1: \t', self.player1.get_pits()[::-1], '\t')
-            print('     ', self.player1.get_store(), '\t\t    ', self.player2.get_store())
-            print('P2: \t', self.player2.get_pits()[::-1], '\t')
+    def print_board(self, player_num: int):
+        other_player_num = 2 if player_num == 1 else 1
+        if player_num == 1:
+            current_player = self.player1
+            other_player = self.player2
+        elif player_num == 2:
+            current_player = self.player2
+            other_player = self.player1
         else:
-            print('P2: \t', self.player2.get_pits(), '\t')
-            print('     ', self.player2.get_store(), '\t\t    ', self.player1.get_store())
-            print('P1: \t', self.player1.get_pits(), '\t')
+            raise Exception(f"player parameter must be 1 or 2, input was {player_num}")
+        print(f'P{other_player_num}: \t', other_player.get_pits()[::-1], '\t')
+        print('     ', self.player1.get_store(), '\t\t    ', self.player2.get_store())
+        print(f'P{player_num}: \t', current_player.get_pits(), '\t')
+        
     def is_valid_move(self, pos, pits):
         if pos < 0 or pos > 5:
             raise ValueError('Pass 1 to 6')
@@ -50,18 +52,19 @@ class Game:
     
     def move(self):
         if self.current_player == 1:
-            arr = self.board.get_player(1).get_pits() + [self.board.get_player(1).get_store()] + self.board.get_player(2).get_pits()[::-1]
+            arr = self.board.get_player(1).get_pits() + [self.board.get_player(1).get_store()] + self.board.get_player(2).get_pits()
         else:
-            arr = self.board.get_player(2).get_pits()[::-1] + [self.board.get_player(2).get_store()] + self.board.get_player(1).get_pits()[::-1]
+            arr = self.board.get_player(2).get_pits() + [self.board.get_player(2).get_store()] + self.board.get_player(1).get_pits()
         print(arr)
         
         validMove = False
         while validMove is False:
             curr_player = self.current_player
-            if curr_player == 2:
-                self.board.print_board(flip = True)
-            else:
-                self.board.print_board()
+            self.board.print_board(self.current_player)
+            # if curr_player == 2:
+            #     self.board.print_board(flip = True)
+            # else:
+            #     self.board.print_board()
             arr_pos = int(input('Player ' + str(self.current_player) + ": Make your move (enter 1-6). Your pits: " + str(self.board.get_player(self.current_player).get_pits())+ '\n')) - 1
             if arr_pos == 6:
                 print("Hmm. So you want to learn what the ideal move is... mathematically\n")
@@ -82,7 +85,7 @@ class Game:
             print(arr)
         if arr[curr_pos] == 1 and curr_pos != 6 and curr_pos in [0,1,2,3,4,5]:
             print("Capture!")
-            arr[curr_pos] = arr[curr_pos] + arr[12 - curr_pos]
+            arr[6] = arr[curr_pos] + arr[12 - curr_pos]
             arr[12 - curr_pos] = 0
 
         
@@ -101,7 +104,7 @@ class Game:
             self.move()
         else:
             print("End turn")
-            self.board.print_board()
+            self.board.print_board(self.current_player)
             if self.current_player == 1:
                 self.current_player = 2
             else: 
