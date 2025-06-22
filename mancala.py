@@ -1,3 +1,4 @@
+gameStatus = False
 class Player:
     def __init__(self, num, pits, store):
         self.pits = pits
@@ -39,7 +40,7 @@ class Board:
         
     def is_valid_move(self, pos, pits):
         if pos < 0 or pos > 5:
-            raise ValueError('Pass 1 to 6')
+            return False
         return pits[pos] != 0
 class Game:
     def __init__(self):
@@ -74,6 +75,8 @@ class Game:
                 ai_move(arr)
             else:
                 validMove = self.board.is_valid_move(arr_pos, self.board.get_player(self.current_player).get_pits())
+                if validMove is False:
+                    print('Invalid move! Try again bozo')
            
         print('Valid move')
  
@@ -98,7 +101,16 @@ class Game:
             self.board.player2.set_store(arr[6])
             self.board.player1.set_pits(arr[7:13])
 
-    
+        if self.is_game_over():
+            print("One player's pits are empty. The game is finished.")
+            global gameStatus
+            gameStatus = True
+            p1_remaining_stones = sum(self.board.player1.get_pits())
+            self.board.player1.set_store(self.board.player1.get_store() + p1_remaining_stones)
+            p2_remaining_stones = sum(self.board.player2.get_pits())
+            self.board.player2.set_store(self.board.player2.get_store() + p2_remaining_stones)
+            return 
+
         if curr_pos == 6:
             print("You move again")
             self.move()
@@ -141,8 +153,16 @@ def ai_move(arr):
 
 if __name__ == '__main__':
     g = Game()
-    gameStatus = False
+
     while gameStatus is False:
         g.move()
-        gameStatus = g.is_game_over()
+    p1_store = g.board.player1.get_store()
+    p2_store = g.board.player2.get_store()
+    if p1_store > p2_store:
+        print("Player 1 is the winner!")
+    elif p2_store > p1_store:
+        print("Player 2 is the winner!")
+    else:
+        print("Draw!")
+
         
