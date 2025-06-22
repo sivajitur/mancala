@@ -34,7 +34,7 @@ class Board:
         else:
             raise Exception(f"player parameter must be 1 or 2, input was {player_num}")
         print(f'P{other_player_num}: \t', other_player.get_pits()[::-1], '\t')
-        print('     ', self.player1.get_store(), '\t\t    ', self.player2.get_store())
+        print('     ', other_player.get_store(), '\t\t    ', current_player.get_store())
         print(f'P{player_num}: \t', current_player.get_pits(), '\t')
         
     def is_valid_move(self, pos, pits):
@@ -85,7 +85,7 @@ class Game:
             print(arr)
         if arr[curr_pos] == 1 and curr_pos != 6 and curr_pos in [0,1,2,3,4,5]:
             print("Capture!")
-            arr[6] = arr[curr_pos] + arr[12 - curr_pos]
+            arr[6] += arr[curr_pos] + arr[12 - curr_pos]
             arr[12 - curr_pos] = 0
 
         
