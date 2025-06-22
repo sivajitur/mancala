@@ -81,15 +81,16 @@ class Game:
         print('Valid move')
  
         curr_pos = arr_pos
-        while arr[arr_pos] != 0:
+        num_stones = arr[arr_pos]
+        arr[arr_pos] = 0
+        for _ in range(num_stones):
             curr_pos = curr_pos + 1
-            arr[curr_pos] = arr[curr_pos] + 1
-            arr[arr_pos] = arr[arr_pos] - 1
+            arr[curr_pos%13] = arr[curr_pos%13] + 1
             print(arr)
-        if arr[curr_pos] == 1 and curr_pos != 6 and curr_pos in [0,1,2,3,4,5]:
+        if arr[curr_pos%13] == 1 and (curr_pos%13) in [0,1,2,3,4,5]:
             print("Capture!")
-            arr[6] += arr[curr_pos] + arr[12 - curr_pos]
-            arr[12 - curr_pos] = 0
+            arr[6] += arr[curr_pos%13] + arr[12 - (curr_pos%13)]
+            arr[12 - (curr_pos%13)] = 0
 
         
         if self.current_player == 1:
