@@ -23,7 +23,8 @@ class Board:
         elif player_num == 2:
             return self.player2
         else:
-            ValueError("Either 1 or 2")
+            raise ValueError("Either 1 or 2")
+
     def print_board(self, player_num: int):
         other_player_num = 2 if player_num == 1 else 1
         if player_num == 1:
@@ -42,6 +43,8 @@ class Board:
         if pos < 0 or pos > 5:
             return False
         return pits[pos] != 0
+    
+#Game class should only handle logic, not UI (user prompts). need to move UI to another class. makes it easier to tie in with training algorithm
 class Game:
     def __init__(self):
         self.board = Board()
@@ -50,36 +53,27 @@ class Game:
     def is_game_over(self):
         return all(pit == 0 for pit in self.board.player1.get_pits()) or all(pit == 0 for pit in self.board.player2.get_pits()) 
     
-    
+    # move needs to take in a choice for a move and then output the board state and the next player
     def move(self):
-        if self.current_player == 1:
-            arr = self.board.get_player(1).get_pits() + [self.board.get_player(1).get_store()] + self.board.get_player(2).get_pits()
-        else:
-            arr = self.board.get_player(2).get_pits() + [self.board.get_player(2).get_store()] + self.board.get_player(1).get_pits()
+        player_nums = [1,2] if self.current_player == 1 else [2,1]
+        player_info = [(self.board.get_player(num), num) for num in player_nums]
+        curr_player, curr_player_num = player_info[0]
+        other_player, other_player_num = player_info[1]
+        
+        arr = curr_player.get_pits() + [curr_player.get_store()] + other_player.get_pits()
         print(arr)
         
         validMove = False
         while validMove is False:
-            curr_player = self.current_player
-            self.board.print_board(self.current_player)
-            # if curr_player == 2:
-            #     self.board.print_board(flip = True)
-            # else:
-            #     self.board.print_board()
+            self.board.print_board(curr_player_num)
             arr_pos = int(input('Player ' + str(self.current_player) + ": Make your move (enter 1-6). Your pits: " + str(self.board.get_player(self.current_player).get_pits())+ '\n')) - 1
-            if arr_pos == 6:
-                print("Hmm. So you want to learn what the ideal move is... mathematically\n")
-                ideal_move(arr)
-            elif arr_pos == -1:
-                print("Hmm. So you want AI to give you the ideal move.\n")
-                ai_move(arr)
-            else:
-                validMove = self.board.is_valid_move(arr_pos, self.board.get_player(self.current_player).get_pits())
-                if validMove is False:
-                    print('Invalid move! Try again bozo')
+            validMove = self.board.is_valid_move(arr_pos, self.board.get_player(self.current_player).get_pits())
+            if validMove is False:
+                print('Invalid move! Try again bozo')
            
         print('Valid move')
  
+        #save curr_pos%13 as a variable in the loop for consistency
         curr_pos = arr_pos
         num_stones = arr[arr_pos]
         arr[arr_pos] = 0
@@ -91,16 +85,11 @@ class Game:
             print("Capture!")
             arr[6] += arr[curr_pos%13] + arr[12 - (curr_pos%13)]
             arr[12 - (curr_pos%13)] = 0
+            arr[curr_pos%13] = 0
 
-        
-        if self.current_player == 1:
-            self.board.player1.set_pits(arr[0:6])
-            self.board.player1.set_store(arr[6])
-            self.board.player2.set_pits(arr[7:13])
-        else:
-            self.board.player2.set_pits(arr[0:6])
-            self.board.player2.set_store(arr[6])
-            self.board.player1.set_pits(arr[7:13])
+        curr_player.set_pits(arr[0:6])
+        curr_player.set_store(arr[6])
+        other_player.set_pits(arr[7:13])
 
         if self.is_game_over():
             print("One player's pits are empty. The game is finished.")
@@ -112,6 +101,7 @@ class Game:
             self.board.player2.set_store(self.board.player2.get_store() + p2_remaining_stones)
             return 
 
+        #need to modify so that move returns state and next player instead of triggering next move
         if curr_pos == 6:
             print("You move again")
             self.move()
