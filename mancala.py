@@ -3,12 +3,16 @@ class Player:
         self.pits = pits
         self.store = store
         self.num = num
+
     def get_pits(self):
         return self.pits
+    
     def get_store(self):
         return(self.store)
+    
     def set_pits(self, p):
         self.pits = p
+
     def set_store(self, s):
         self.store = s
 
@@ -16,6 +20,7 @@ class Board:
     def __init__(self):
         self.player1 = Player(1, pits = [4] * 6, store = 0)
         self.player2 = Player(2, pits = [4] * 6, store = 0)
+    
     def get_player(self, player_num):
         if player_num == 1:
             return self.player1
@@ -50,6 +55,7 @@ class Game:
     # we might eventually want to turn this into a tuple where the first number is this int
     # and the other elements give some other game info (ex. a capture occurred) so that it can be shown in a UI
     def make_move(self, move) -> int:
+        #get objects for current and other player to avoid retreiving them later
         player_nums = [1,2] if self.current_player == 1 else [2,1]
         player_info = [(self.board.get_player(num), num) for num in player_nums]
         curr_player, curr_player_num = player_info[0]
@@ -59,24 +65,27 @@ class Game:
         if not self.board.is_valid_move(move, curr_player.get_pits()):
             return -1
         
+        #create gem array
         arr = curr_player.get_pits() + [curr_player.get_store()] + other_player.get_pits()
         # add to debug
         #print(arr)
         
+        #remove gems from selected pit and add them to 
         curr_pos = move
-        num_stones = arr[curr_pos]
+        num_gems = arr[curr_pos]
         arr[curr_pos] = 0
-        for _ in range(num_stones):
+        for _ in range(num_gems):
             curr_pos = curr_pos + 1
             looped_pos = curr_pos%13
             arr[looped_pos] = arr[looped_pos] + 1
-            # add this printout to debug
-            # print(arr)
+
+        #if move ends in an empty pit, capture all gems from that pit and the opposing pit
         if arr[looped_pos] == 1 and (looped_pos) in [0,1,2,3,4,5]:
             arr[6] += arr[looped_pos] + arr[12 - (looped_pos)]
             arr[12 - (looped_pos)] = 0
             arr[looped_pos] = 0
 
+        #update board state with result of move
         curr_player.set_pits(arr[0:6])
         curr_player.set_store(arr[6])
         other_player.set_pits(arr[7:13])
